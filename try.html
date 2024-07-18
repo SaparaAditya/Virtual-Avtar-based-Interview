@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech Recognition App</title>
+    <style>
+        /* Your CSS styles */
+    </style>
+</head>
+<body>
+    <div id="videoPlaceholder"></div>
+    <div id="chatPlaceholder"></div>
+    <div id="question"></div>
+    <div id="answer"></div>
+
+    <script>
+        var problems = ["Tell me about yourself", "What was your percentage in last semester?", "What's the project you have done?"];
+        var videos = ["q0.mp4", "q1.mp4", "q2.mp4"];
+        var currentQuestionIndex = 0;
+        var userResponses = []; // Array to store user responses
+        
+        // Define function to play video and get audio input
+        function playVideoAndGetAudio(videoPath, question) {
+            // window.onload=function(){
+            //     document.getElementById("autoplay").play();
+            // }
+            document.getElementById('videoPlaceholder').innerHTML = '<video autoplay ><source src=' + videoPath + ' type="video/mp4"></video>';
+            document.getElementById('question').innerText = 'Question: ' + question;
+            listenForAudio(question);
+            
+        }
+    
+        // Define function to listen for audio input
+        function listenForAudio(question) {
+            var recognition = new webkitSpeechRecognition();
+            recognition.lang = 'en-IN';
+    
+            recognition.onstart = function() {
+                document.getElementById('chatPlaceholder').innerText = 'Listening...';
+            };
+    
+            recognition.onresult = function(event) {
+                var userResponse = event.results[0][0].transcript;
+                userResponses.push(userResponse); // Store user response in array
+                document.getElementById('answer').innerText = 'You said: ' + userResponse;
+                // Send user response to backend for processing
+                // You can use AJAX or fetch to send the data to your backend
+    
+                // Move to the next question and video
+                currentQuestionIndex++;
+                if (currentQuestionIndex < problems.length) {
+                    playVideoAndGetAudio(videos[currentQuestionIndex], problems[currentQuestionIndex]);
+                } else {
+                    document.getElementById('chatPlaceholder').innerText = 'End of questions.';
+                    console.log("All responses:", userResponses); // Log all user responses
+                }
+            };
+    
+            recognition.onerror = function(event) {
+                document.getElementById('chatPlaceholder').innerText = 'Error occurred in recognition: ' + event.error;
+            };
+    
+            recognition.onend = function() {
+                // Optionally, you can prompt the user to speak again if recognition fails
+            };
+    
+            recognition.start();
+        }
+    
+        // Call the function to start the sequence
+        playVideoAndGetAudio(videos[currentQuestionIndex], problems[currentQuestionIndex]);
+    </script>
+    
+</body>
+</html>
